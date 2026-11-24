@@ -1,0 +1,299 @@
+{
+  "info": {
+    "_postman_id": "ffb5fc0d-8873-4346-aed9-3c14f3ea8c80",
+    "name": "ReqRes User API Chaining Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "4140304"
+  },
+  "item": [
+    {
+      "name": "01 - Register User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\nconst jsonData = pm.response.json();\n\npm.test(\"ID and token returned, credentials saved\", function() {\n    pm.expect(jsonData.id).to.exist;\n    pm.expect(jsonData.token).to.be.a(\"string\").and.not.be.empty;\n\n//Save credentials so the login request can reuse them\n/*\npm.environment.set(\"reg_email\", \"eve.holt@reqres.in\");\npm.environment.set(\"reg_password\", \"pistol\");\npm.environment.set(\"registered_user_id\", jsonData.id);\n*/\n});\n\n// Store email and password from request body to environment variables\nconst reqBody = JSON.parse(pm.request.body.raw);\npm.environment.set(\"reg_email\", reqBody.email);\npm.environment.set(\"reg_password\", reqBody.password);\npm.environment.set(\"registered_user_id\", jsonData.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"eve.holt@reqres.in\",\r\n  \"password\": \"pistol\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\nconst jsonData = pm.response.json();\n\npm.test(\"Auth token is received and saved to environment\", function () {\n    pm.expect(jsonData.token).to.be.a(\"string\").and.not.be.empty;\n    pm.environment.set(\"auth_token\", jsonData.token);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{reg_email}}\",\n  \"password\": \"{{reg_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 - Get Registered User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\nconst jsonData = pm.response.json();\n\npm.test(\"Returned user ID matches registered user ID\", function () {\n    const registeredUserId = parseInt(pm.environment.get(\"registered_user_id\"));\n    pm.expect(jsonData.data.id).to.eql(registeredUserId);\n});\n\npm.test(\"Returned email matches registered email\", function () {\n    const registeredEmail = pm.environment.get(\"reg_email\");\n    pm.expect(jsonData.data.email).to.eql(registeredEmail);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/{{registered_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{registered_user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 - Create User Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nconst jsonData = pm.response.json();\r\npm.test(\"User profile created and ID saved to environment\", function() {\r\n    pm.expect(jsonData.id).to.exist;\r\n    pm.environment.set(\"created_user_id\", jsonData.id);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"morpheus\",\r\n  \"job\": \"leader\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 - Update User Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Job title updated and timestamp returned\", function(){\r\n    const jsonData = pm.response.json();\r\n    pm.expect(jsonData.job).to.eql(\"Test Engineer\");\r\n    pm.expect(jsonData.updatedAt).to.exist;\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"morpheus\",\r\n  \"job\": \"Test Engineer\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/{{created_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{created_user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 - Partially Updated User Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Job field updated partially and timestamp returned\", function(){\r\n    const jsonData = pm.response.json();\r\n    pm.expect(jsonData.job).to.eql(\"Senior QA Lead\");\r\n    pm.expect(jsonData.updatedAt).to.exist;\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{auth_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"job\": \"Senior QA Lead\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/{{created_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{created_user_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Delete User Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 204 No Content\", function () {\r\n    pm.response.to.have.status(204);\r\n});\r\n\r\npm.test(\"Response body is empty\", function () {\r\n    pm.expect(pm.response.text()).to.be.empty;\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{created_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{created_user_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

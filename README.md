@@ -1,1 +1,14 @@
-# postman-api-chaining-project
+# ReqRes API Chaining & Automated Testing Suite (Postman)
+An end-to-end REST API testing collection built in **Postman** using the [ReqRes](https://reqres.in) API. This project demonstrates complete authentication and CRUD lifecycle testing using dynamic environment variables, API request chaining, and automated JavaScript assertions.
+---
+## Key Highlights* **End-to-End API Chaining:** Dynamically extracts credentials, user IDs, and bearer tokens from responses and passes them to downstream requests via Postman Environment Variables.* **Full CRUD + Auth Lifecycle:** Covers `POST` (Register, Login, Create), `GET` (Read), `PUT` (Full Update), `PATCH` (Partial Update), and `DELETE` (Cleanup).* **Automated Post-Response Assertions:** Validates HTTP status codes (`200`, `201`, `204`), JSON payload fields, and dynamic timestamps using Postman's `pm.test` and Chai assertion library.
+---
+## Request Execution Flow
+| Step | Request Name | Method | Endpoint | Chained Variables Handled || :--- | :--- | :--- | :--- | :--- || **01** | Register User | `POST` | `/api/register` | **Sets:** `reg_email`, `reg_password`, `registered_user_id` || **02** | Login User | `POST` | `/api/login` | **Uses:** `reg_email`, `reg_password` \| **Sets:** `auth_token` || **03** | Get Registered User | `GET` | `/api/users/{{registered_user_id}}` | **Uses:** `registered_user_id`, `auth_token` || **04** | Create User Profile | `POST` | `/api/users` | **Uses:** `auth_token` \| **Sets:** `created_user_id` || **05** | Update User Profile (Full) | `PUT` | `/api/users/{{created_user_id}}` | **Uses:** `created_user_id`, `auth_token` || **06** | Partially Update User Profile | `PATCH` | `/api/users/{{created_user_id}}` | **Uses:** `created_user_id`, `auth_token` || **07** | Delete User Profile | `DELETE` | `/api/users/{{created_user_id}}` | **Uses:** `created_user_id`, `auth_token` |
+---
+## Repository Contents* `ReqRes User API Chaining Suite.postman_collection.json` — Exported Postman Collection (v2.1) containing all 7 requests and post-response test scripts.* `ReqRes QA Env.postman_environment.json` — Postman Environment file pre-configured with `base_url` (`https://reqres.in`) and placeholder variables for chaining.
+---
+## How to Run Locally
+1. **Download or Clone** this repository to your computer.2. Open **Postman** and click **Import** (top-left).3. Select both `ReqRes User API Chaining Suite.postman_collection.json ` and `ReqRes QA Env.postman_environment.json  `.4. In the top-right environment dropdown, select **`ReqRes QA Env`**.5. Hover over **`ReqRes User API Chaining Suite`**, click **⋯ → Run**, and click **Run ReqRes User API Chaining Suite** to execute all 7 chained requests sequentially.
+---
+## Tools & Technologies* **API Client & Runner:** Postman* **Scripting & Assertions:** JavaScript (`pm.test`, `pm.expect`, `pm.environment`)* **API Under Test:** ReqRes REST API (`JSON` over `HTTPS`)
